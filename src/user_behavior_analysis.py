@@ -17,8 +17,10 @@ def analyze_user_behavior(file_path):
         total_session_duration=('Dur. (ms)', 'sum'),
         total_download_data=('Total DL (Bytes)', 'sum'),
         total_upload_data=('Total UL (Bytes)', 'sum'),
-        total_data_volume=('Total DL (Bytes)', 'sum') + df['Total UL (Bytes)'].sum()
     ).reset_index()
+
+    # Add the total_data_volume column
+    user_behavior['total_data_volume'] = user_behavior['total_download_data'] + user_behavior['total_upload_data']
 
     # Step 3: Checking for any missing values in the aggregated columns
     if user_behavior.isnull().sum().any():
@@ -43,7 +45,7 @@ def analyze_user_behavior(file_path):
     print("User behavior analysis completed and saved as an image.")
 
 # Define the file path for the dataset
-file_path = os.path.join('cleaned_data', 'user_behavior', 'xdr_sessions.csv')
+file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
 
 # Call the function to analyze user behavior and save the plot
 analyze_user_behavior(file_path)

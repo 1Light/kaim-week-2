@@ -81,6 +81,4 @@ def load_and_clean_data():
     cleaned_data_path = os.path.join(cleaned_path, 'main_data_source.csv')
     df.to_csv(cleaned_data_path, index=False)  # Save without the index column
 
-    print(df.dtypes)
-
 load_and_clean_data()
