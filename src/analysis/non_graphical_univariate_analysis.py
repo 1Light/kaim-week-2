@@ -1,40 +1,50 @@
 import pandas as pd
 import os
 
-def non_graphical_univariate_analysis(file_path):
-    # Load the CSV file into a pandas DataFrame
-    df = pd.read_csv(file_path)
+class NonGraphicalUnivariateAnalysis:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.df = pd.read_csv(file_path)
+        self.dispersion_stats = pd.DataFrame()
 
-    # Select quantitative columns (numerical data) only
-    quantitative_columns = df.select_dtypes(include=[float, int]).columns
+    def calculate_dispersion_stats(self):
+        # Select quantitative columns (numerical data) only
+        quantitative_columns = self.df.select_dtypes(include=[float, int]).columns
+        
+        # Calculate variance, standard deviation, and IQR for each quantitative variable
+        self.dispersion_stats['Variance'] = self.df[quantitative_columns].var()
+        self.dispersion_stats['Standard Deviation'] = self.df[quantitative_columns].std()
+        self.dispersion_stats['Interquartile Range (IQR)'] = self.df[quantitative_columns].apply(lambda x: x.quantile(0.75) - x.quantile(0.25))
 
-    # Create a DataFrame to store dispersion statistics
-    dispersion_stats = pd.DataFrame(index=quantitative_columns)
+    def print_dispersion_stats(self):
+        # Print the dispersion statistics for each variable
+        print("\nDispersion Statistics for Each Quantitative Variable:")
+        print(self.dispersion_stats)
 
-    # Calculate variance, standard deviation, and IQR for each quantitative variable
-    dispersion_stats['Variance'] = df[quantitative_columns].var()
-    dispersion_stats['Standard Deviation'] = df[quantitative_columns].std()
-    dispersion_stats['Interquartile Range (IQR)'] = df[quantitative_columns].apply(lambda x: x.quantile(0.75) - x.quantile(0.25))
+    def save_dispersion_stats(self):
+        # Save the dispersion statistics to a CSV file for documentation
+        os.makedirs('results', exist_ok=True)
+        self.dispersion_stats.to_csv('results/dispersion_stats.csv', index=True)
+        print("\nDispersion statistics saved to 'results/dispersion_stats.csv'.")
 
-    # Print the dispersion statistics for each variable
-    print("\nDispersion Statistics for Each Quantitative Variable:")
-    print(dispersion_stats)
+    def print_interpretation(self):
+        # Explanation of the dispersion metrics
+        print("\nInterpretation of Dispersion Metrics:")
+        print(""" 
+        - Variance: Measures how spread out the data is. Higher variance indicates greater spread.
+        - Standard Deviation: The square root of variance, gives a more interpretable measure of spread in the same units as the data.
+        - Interquartile Range (IQR): Measures the spread of the middle 50% of the data. Useful for detecting outliers.
+        """)
 
-    # Save the dispersion statistics to a CSV file for documentation
-    os.makedirs('results', exist_ok=True)
-    dispersion_stats.to_csv('results/dispersion_stats.csv', index=True)
-    print("\nDispersion statistics saved to 'results/dispersion_stats.csv'.")
-
-    # Explanation of the dispersion metrics
-    print("\nInterpretation of Dispersion Metrics:")
-    print("""
-    - Variance: Measures how spread out the data is. Higher variance indicates greater spread.
-    - Standard Deviation: The square root of variance, gives a more interpretable measure of spread in the same units as the data.
-    - Interquartile Range (IQR): Measures the spread of the middle 50% of the data. Useful for detecting outliers.
-    """)
+    def run_analysis(self):
+        self.calculate_dispersion_stats()
+        self.print_dispersion_stats()
+        self.save_dispersion_stats()
+        self.print_interpretation()
 
 # Define the file path for the dataset
 file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
 
-# Call the function to conduct non-graphical univariate analysis
-non_graphical_univariate_analysis(file_path)
+# Create an instance of the NonGraphicalUnivariateAnalysis class and run the analysis
+analysis = NonGraphicalUnivariateAnalysis(file_path)
+analysis.run_analysis()

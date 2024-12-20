@@ -2,83 +2,102 @@ import gdown
 import pandas as pd
 import os
 
-def download_from_gdrive(file_id, output_path):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    gdown.download(url, output_path, quiet=False)
+class DataDownloader:
+    def __init__(self, file_ids, output_dir):
+        self.file_ids = file_ids
+        self.output_dir = output_dir
 
-def load_and_clean_data():
+    def download_from_gdrive(self, file_id, output_path):
+        """Download a file from Google Drive using gdown."""
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, output_path, quiet=False)
 
-    file_ids = {
-        "main_data_source": "13MnZMUugPm43U_fLTmRAh0FuJF-hr1L3"
-    }
+    def download_data(self):
+        """Download the necessary data if it doesn't already exist."""
+        os.makedirs(self.output_dir, exist_ok=True)  
 
-    # Define local paths to save the data temporarily
+        # Define file paths for the dataset
+        data_path = os.path.join(self.output_dir, 'main_data_source.csv')
+
+        # Download files only if they don't exist
+        if not os.path.exists(data_path):
+            print("Downloading data...")
+            self.download_from_gdrive(self.file_ids["main_data_source"], data_path)
+
+        return data_path
+
+class DataCleaner:
+    def __init__(self, data_path):
+        self.df = pd.read_csv(data_path)
+        self.numeric_columns = [
+            'Bearer Id', 'Start ms', 'End ms', 'Dur. (ms)', 'Avg RTT DL (ms)', 
+            'Avg RTT UL (ms)', 'Avg Bearer TP DL (kbps)', 'Avg Bearer TP UL (kbps)', 
+            'TCP DL Retrans. Vol (Bytes)', 'TCP UL Retrans. Vol (Bytes)', 
+            'DL TP < 50 Kbps (%)', '50 Kbps < DL TP < 250 Kbps (%)', 
+            '250 Kbps < DL TP < 1 Mbps (%)', 'DL TP > 1 Mbps (%)', 
+            'UL TP < 10 Kbps (%)', '10 Kbps < UL TP < 50 Kbps (%)', 
+            '50 Kbps < UL TP < 300 Kbps (%)', 'UL TP > 300 Kbps (%)', 
+            'HTTP DL (Bytes)', 'HTTP UL (Bytes)', 'Activity Duration DL (ms)', 
+            'Activity Duration UL (ms)', 'Dur. (ms).1', 'Nb of sec with 125000B < Vol DL', 
+            'Nb of sec with 1250B < Vol UL < 6250B', 'Nb of sec with 31250B < Vol DL < 125000B', 
+            'Nb of sec with 37500B < Vol UL', 'Nb of sec with 6250B < Vol DL < 31250B', 
+            'Nb of sec with 6250B < Vol UL < 37500B', 'Nb of sec with Vol DL < 6250B', 
+            'Nb of sec with Vol UL < 1250B', 'Social Media DL (Bytes)', 'Social Media UL (Bytes)', 
+            'Google DL (Bytes)', 'Google UL (Bytes)', 'Email DL (Bytes)', 'Email UL (Bytes)', 
+            'Youtube DL (Bytes)', 'Youtube UL (Bytes)', 'Netflix DL (Bytes)', 
+            'Netflix UL (Bytes)', 'Gaming DL (Bytes)', 'Gaming UL (Bytes)', 
+            'Other DL (Bytes)', 'Other UL (Bytes)', 'Total UL (Bytes)', 'Total DL (Bytes)'
+        ]
+
+    def clean_data(self):
+        """Clean the data (fix data types, handle missing values, etc.)."""
+        # Correcting the data types
+        self.df['Start'] = pd.to_datetime(self.df['Start'], errors='coerce')
+        self.df['End'] = pd.to_datetime(self.df['End'], errors='coerce')
+        self.df['IMSI'] = self.df['IMSI'].astype(str)
+        self.df['MSISDN/Number'] = self.df['MSISDN/Number'].astype(str)
+        self.df['IMEI'] = self.df['IMEI'].astype(str)
+        self.df['Last Location Name'] = self.df['Last Location Name'].astype(str)
+        self.df['Handset Manufacturer'] = self.df['Handset Manufacturer'].astype(str)
+        self.df['Handset Type'] = self.df['Handset Type'].astype(str)
+
+        # Drop rows where 'Start' or 'End' is missing
+        self.df = self.df.dropna(subset=['Start', 'End'])
+
+        # Fill missing numeric values with the median
+        self.df[self.numeric_columns] = self.df[self.numeric_columns].fillna(self.df[self.numeric_columns].median())
+
+        return self.df
+
+class DataSaver:
+    def __init__(self, df, output_dir):
+        self.df = df
+        self.output_dir = output_dir
+
+    def save_cleaned_data(self):
+        """Save the cleaned data to a new CSV file."""
+        cleaned_path = os.path.join(self.output_dir, 'main_data_source.csv')
+        os.makedirs(self.output_dir, exist_ok=True)
+        self.df.to_csv(cleaned_path, index=False)
+        print(f"Cleaned data saved to {cleaned_path}")
+
+def main():
+    file_ids = {"main_data_source": "13MnZMUugPm43U_fLTmRAh0FuJF-hr1L3"}
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'main_data_source'))
-    os.makedirs(base_path, exist_ok=True)  
-    
-    # Define file paths for the dataset
-    data_path = os.path.join(base_path, 'main_data_source.csv')
 
-    # Download files only if they don't exist
-    if not os.path.exists(data_path):
-        print("Downloading data...")
-        download_from_gdrive(file_ids["main_data_source"], data_path)
+    # Step 1: Download data
+    downloader = DataDownloader(file_ids, base_path)
+    data_path = downloader.download_data()
 
-    df = pd.read_csv(data_path)
+    # Step 2: Clean the data
+    cleaner = DataCleaner(data_path)
+    cleaned_df = cleaner.clean_data()
 
-    # Step 2: Inspect the structure of the data
+    # Step 3: Save the cleaned data
+    cleaned_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cleaned_data', 'main_data_source'))
+    saver = DataSaver(cleaned_df, cleaned_data_path)
+    saver.save_cleaned_data()
 
-    """
-    # Print the first few rows to verify successful load
-    print(data.head())
-
-    # Check the data types of the columns
-    print(df.dtypes)
-
-    # Check for missing data
-    print(df.isnull().sum())
-    """
-
-    # Correcting the data types
-    df['Start'] = pd.to_datetime(df['Start'], errors='coerce')  # Convert to datetime, invalid parsing will be set to NaT
-    df['End'] = pd.to_datetime(df['End'], errors='coerce')      # Convert to datetime, invalid parsing will be set to NaT
-    df['IMSI'] = df['IMSI'].astype(str)  # Convert IMSI to string
-    df['MSISDN/Number'] = df['MSISDN/Number'].astype(str)  # Convert MSISDN/Number to string
-    df['IMEI'] = df['IMEI'].astype(str)  # Convert IMEI to string
-    df['Last Location Name'] = df['Last Location Name'].astype(str)  # Convert to string (if it's an identifier)
-    df['Handset Manufacturer'] = df['Handset Manufacturer'].astype(str)  # Convert to string (entire model name)
-    df['Handset Type'] = df['Handset Type'].astype(str)  # Convert to string (entire type name)
-
-    numeric_columns = ['Bearer Id', 'Start ms', 'End ms', 'Dur. (ms)', 'Avg RTT DL (ms)', 
-                    'Avg RTT UL (ms)', 'Avg Bearer TP DL (kbps)', 'Avg Bearer TP UL (kbps)', 
-                    'TCP DL Retrans. Vol (Bytes)', 'TCP UL Retrans. Vol (Bytes)', 
-                    'DL TP < 50 Kbps (%)', '50 Kbps < DL TP < 250 Kbps (%)', 
-                    '250 Kbps < DL TP < 1 Mbps (%)', 'DL TP > 1 Mbps (%)', 
-                    'UL TP < 10 Kbps (%)', '10 Kbps < UL TP < 50 Kbps (%)', 
-                    '50 Kbps < UL TP < 300 Kbps (%)', 'UL TP > 300 Kbps (%)', 
-                    'HTTP DL (Bytes)', 'HTTP UL (Bytes)', 'Activity Duration DL (ms)', 
-                    'Activity Duration UL (ms)', 'Dur. (ms).1', 'Nb of sec with 125000B < Vol DL', 
-                    'Nb of sec with 1250B < Vol UL < 6250B', 'Nb of sec with 31250B < Vol DL < 125000B', 
-                    'Nb of sec with 37500B < Vol UL', 'Nb of sec with 6250B < Vol DL < 31250B', 
-                    'Nb of sec with 6250B < Vol UL < 37500B', 'Nb of sec with Vol DL < 6250B', 
-                    'Nb of sec with Vol UL < 1250B', 'Social Media DL (Bytes)', 'Social Media UL (Bytes)', 
-                    'Google DL (Bytes)', 'Google UL (Bytes)', 'Email DL (Bytes)', 'Email UL (Bytes)', 
-                    'Youtube DL (Bytes)', 'Youtube UL (Bytes)', 'Netflix DL (Bytes)', 
-                    'Netflix UL (Bytes)', 'Gaming DL (Bytes)', 'Gaming UL (Bytes)', 
-                    'Other DL (Bytes)', 'Other UL (Bytes)', 'Total UL (Bytes)', 'Total DL (Bytes)']
-
-    # Since only 1 row from Start and End is missing, drop it
-    df = df.dropna(subset=['Start', 'End'])
-
-    # Fill numeric missing values with the median
-    df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].median())
-
-    # Define local paths to save the data temporarily
-    cleaned_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cleaned_data', 'main_data_source'))
-    os.makedirs(cleaned_path, exist_ok=True)  
-
-    # Save the cleaned data to a new CSV file
-    cleaned_data_path = os.path.join(cleaned_path, 'main_data_source.csv')
-    df.to_csv(cleaned_data_path, index=False)  # Save without the index column
-
-load_and_clean_data()
+# Run the main function to execute the whole process
+if __name__ == "__main__":
+    main()
