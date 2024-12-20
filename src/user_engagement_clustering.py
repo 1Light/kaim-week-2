@@ -56,6 +56,9 @@ def user_engagement_clustering(file_path):
         total_total_traffic=('total_traffic', 'sum')
     ).reset_index()
 
+    # Ensure all columns are visible when printed
+    pd.set_option('display.max_columns', None)
+
     # Print the cluster summary
     print("Cluster Summary (Min, Max, Avg, Total for each metric):")
     print(cluster_summary)

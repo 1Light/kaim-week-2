@@ -24,6 +24,11 @@ def plot_top_apps(file_path):
     # Get the top 3 most used applications
     top_3_apps = app_usage.head(3)
 
+    # Print the top 3 applications and their total download bytes to the terminal
+    print("Top 3 Most Used Applications by Download Data (Bytes):")
+    for app, usage in top_3_apps.items():
+        print(f"{app}: {usage} Bytes")
+
     # Plot the top 3 applications
     plt.figure(figsize=(10, 6))
     sns.barplot(x=top_3_apps.index, y=top_3_apps.values, color='blue')  # Simple color instead of palette

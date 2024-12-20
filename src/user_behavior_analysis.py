@@ -27,6 +27,10 @@ def analyze_user_behavior(file_path):
         print(f"Warning: Some missing values found in the aggregated data. Handling missing values by replacing with the mean.")
         user_behavior.fillna(user_behavior.mean(), inplace=True)
 
+    # Print the aggregated data to the terminal
+    print("Aggregated User Behavior Data (Total Data Volume per IMSI):")
+    print(user_behavior[['IMSI', 'total_data_volume']].head())  # Print the first few rows for inspection
+
     # Step 4: Generating a plot to visualize the total data volume per IMSI (user)
     fig, ax = plt.subplots(figsize=(12, 6))  # Set the figure size
     user_behavior.plot(kind='bar', x='IMSI', y='total_data_volume', ax=ax, color='#4CAF50')

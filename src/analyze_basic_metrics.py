@@ -5,6 +5,9 @@ def analyze_basic_metrics(file_path):
     # Load the CSV file into a pandas DataFrame
     df = pd.read_csv(file_path)
 
+    # Ensure all columns are printed in the terminal
+    pd.set_option('display.max_columns', None)
+
     # Describe the basic metrics for numerical variables
     print("\nBasic Metrics for Numerical Variables:")
     descriptive_stats = df.describe(include=[float, int]).T

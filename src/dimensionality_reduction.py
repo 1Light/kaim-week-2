@@ -55,7 +55,27 @@ def dimensionality_reduction(file_path):
 
     # Interpretation
     print("\nInterpretation of PCA Results:")
-    print("""
+    
+    # High explained variance in the first component
+    if pca.explained_variance_ratio_[0] > 0.7:
+        print("Insight: The first principal component (PC1) explains more than 70% of the variance, suggesting that this component captures the dominant pattern in the data.")
+    else:
+        print("Insight: The first principal component (PC1) explains less than 70% of the variance, indicating that the variance is more evenly distributed among the components.")
+
+    # Analyzing the second component's contribution
+    if pca.explained_variance_ratio_[1] > 0.3:
+        print(f"Insight: The second principal component (PC2) explains {pca.explained_variance_ratio_[1] * 100:.2f}% of the variance, which is relatively significant in capturing the remaining patterns in the data.")
+    else:
+        print(f"Insight: The second principal component (PC2) explains only {pca.explained_variance_ratio_[1] * 100:.2f}% of the variance, indicating a lesser contribution compared to PC1.")
+
+    # Cumulative variance explained
+    cumulative_variance = pca.explained_variance_ratio_.cumsum()
+    if cumulative_variance[-1] > 0.9:
+        print(f"Insight: The first two principal components together explain {cumulative_variance[-1] * 100:.2f}% of the total variance, which is high and suggests that these components capture most of the variance in the data.")
+    else:
+        print(f"Insight: The first two principal components together explain {cumulative_variance[-1] * 100:.2f}% of the total variance, meaning more components may be needed for a more complete representation.")
+
+    print("""\nGeneral Interpretation of PCA Results:
     - The first principal component (PC1) explains a large portion of the variance in the data. This indicates the most significant pattern across the applications.
     - The second principal component (PC2) explains a smaller portion of the remaining variance, representing the second most important pattern of variability.
     - Together, these two components can capture a significant portion of the total variance in the data, enabling a reduced representation of the original features.

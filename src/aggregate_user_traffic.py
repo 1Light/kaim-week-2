@@ -23,6 +23,13 @@ def aggregate_traffic_per_application(file_path):
         app_name = app_column.split()[0]  # Extract the app name (e.g., 'Social', 'Google', etc.)
         app_traffic[app_name] = df.groupby('MSISDN/Number')[app_column].sum()
 
+    # Ensure all columns of the app_traffic DataFrame are printed
+    pd.set_option('display.max_columns', None)
+
+    # Print the aggregated traffic
+    print("Aggregated Traffic Per Application (Bytes):")
+    print(app_traffic)
+
     # Now, find the top 10 most engaged users for each application
     top_10_users = {}
     

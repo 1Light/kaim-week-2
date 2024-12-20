@@ -31,7 +31,8 @@ def graphical_univariate_analysis(file_path):
             plt.savefig(f'{output_dir}/{sanitized_column}_boxplot.png')
             plt.close()
             print(f"Boxplot for {column} saved.")
-
+            print(f"Insight: Boxplot for {column} indicates potential outliers and the spread of data.")
+        
         else:
             # Use a histogram if the number of unique values is large (continuous variable)
             sns.histplot(df[column], kde=True, bins=30, color='skyblue', edgecolor='black')
@@ -41,7 +42,23 @@ def graphical_univariate_analysis(file_path):
             plt.savefig(f'{output_dir}/{sanitized_column}_histogram.png')
             plt.close()
             print(f"Histogram for {column} saved.")
-        
+
+            # Analyze the distribution of the data
+            skewness = df[column].skew()
+            if skewness > 1:
+                print(f"Insight: Histogram for {column} shows a right skew (positively skewed).")
+            elif skewness < -1:
+                print(f"Insight: Histogram for {column} shows a left skew (negatively skewed).")
+            else:
+                print(f"Insight: Histogram for {column} shows a roughly symmetric distribution.")
+
+            # Check for normality based on KDE
+            kurtosis = df[column].kurtosis()
+            if abs(kurtosis) < 2:
+                print(f"Insight: Histogram for {column} suggests a distribution close to normal.")
+            else:
+                print(f"Insight: Histogram for {column} shows a more peaked or flat distribution.")
+
     # Print out general interpretations for graphical analysis
     print("\nInterpretations of Graphical Univariate Analysis:")
     print(""" 

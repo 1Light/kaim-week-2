@@ -23,6 +23,13 @@ def compute_cluster_metrics(file_path, num_clusters=5):
     cluster_metrics = df.groupby('ClusterId')[numeric_columns].agg(
         ['min', 'max', 'mean', 'sum']).reset_index()
     
+    # Ensure all columns are visible when printed
+    pd.set_option('display.max_columns', None)
+
+    # Print the cluster metrics
+    print("Cluster Metrics (Min, Max, Avg, Total for each numeric metric):")
+    print(cluster_metrics)
+    
     # Save the result to a new CSV file
     output_dir = 'results/cluster_metrics'
     os.makedirs(output_dir, exist_ok=True)
