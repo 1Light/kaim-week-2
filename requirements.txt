@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+seaborn
+plotly
+scikit-learn
+psycopg2-binary
+sqlalchemy
+streamlit
+scipy
+python-dateutil
+pytest
+python-dotenv
+gdown
