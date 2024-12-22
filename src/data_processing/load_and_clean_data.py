@@ -64,7 +64,8 @@ class DataCleaner:
         # Drop rows where 'Start' or 'End' is missing
         self.df = self.df.dropna(subset=['Start', 'End'])
 
-        # Fill missing numeric values with the median
+        # Fill missing numeric values with the median 
+        # Chose median and not mean or mode because it is less affected by outliers
         self.df[self.numeric_columns] = self.df[self.numeric_columns].fillna(self.df[self.numeric_columns].median())
 
         return self.df
