@@ -21,6 +21,8 @@ class ExperienceClustering:
     def load_data(self):
         self.df = pd.read_csv(self.file_path)
         print(f"Data loaded from {self.file_path}")
+        print(f"Loaded data shape: {self.df.shape}")  # Shape of the data
+        print(f"Columns in the dataset: {self.df.columns.tolist()}")  # Columns in the dataset
 
     def preprocess_data(self):
         # Calculate combined RTT
@@ -33,6 +35,7 @@ class ExperienceClustering:
         scaler = StandardScaler()
         self.df_scaled = scaler.fit_transform(self.df)
         print("Data normalized for clustering.")
+        print(f"Scaled data preview:\n{self.df.head()}")  # Print the first few rows of the scaled data for preview
 
     def perform_clustering(self, k=3):
         kmeans = KMeans(n_clusters=k, random_state=42)
@@ -40,14 +43,15 @@ class ExperienceClustering:
         self.cluster_centers = kmeans.cluster_centers_
         self.df['Cluster'] = self.cluster_labels
         print(f"K-means clustering performed with k={k}.")
+        print(f"Cluster centers:\n{self.cluster_centers}")  # Display the cluster centers
 
     def analyze_clusters(self):
         # Calculate cluster metrics
         cluster_analysis = self.df.groupby('Cluster').mean()
-        print("\nCluster Analysis:")
+        print("\nCluster Analysis (Mean values per cluster):")
         print(cluster_analysis)
 
-        # Save cluster analysis results
+        # Saving the cluster analysis results
         os.makedirs('results', exist_ok=True)
         cluster_analysis.to_csv('results/cluster_analysis.csv')
         print("Cluster analysis saved as 'results/cluster_analysis.csv'.")
@@ -59,6 +63,10 @@ class ExperienceClustering:
         plt.tight_layout()
         plt.savefig('results/cluster_characteristics.png')
         print("Cluster characteristics heatmap saved as 'results/cluster_characteristics.png'.")
+
+        # Printing out cluster distribution
+        cluster_distribution = self.df['Cluster'].value_counts()
+        print(f"\nCluster distribution (number of samples per cluster):\n{cluster_distribution}")
 
     def process(self):
         self.load_data()

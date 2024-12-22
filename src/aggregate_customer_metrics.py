@@ -11,16 +11,19 @@ class CustomerMetricsAggregator:
     def load_data(self):
         self.df = pd.read_csv(self.file_path)
         print(f"Data loaded from {self.file_path}")
+        print(f"Loaded data shape: {self.df.shape}")  # Prints the shape of the loaded data
 
     def handle_missing_values(self):
+        print("\nHandling missing values...")
         for column in self.df.columns:
             if self.df[column].dtype in ['float64', 'int64']:
                 self.df[column] = self.df[column].fillna(self.df[column].mean())
             elif self.df[column].dtype == 'object':
                 self.df[column] = self.df[column].fillna(self.df[column].mode()[0])
-        print("\nMissing values handled.")
+        print("Missing values handled.")
 
     def handle_outliers(self):
+        print("\nHandling outliers...")
         for column in self.df.select_dtypes(include=['float64', 'int64']):
             mean = self.df[column].mean()
             std_dev = self.df[column].std()
@@ -31,10 +34,10 @@ class CustomerMetricsAggregator:
                 mean,
                 self.df[column]
             )
-        print("\nOutliers handled.")
+        print("Outliers handled.")
 
     def aggregate_metrics(self):
-        # Replace 'MSISDN/Number' or 'IMEI' with the appropriate column name
+        print("\nAggregating metrics per customer...")
         group_by_column = 'MSISDN/Number'  # Use this as a proxy for Customer_ID
         self.aggregated_data = self.df.groupby(group_by_column).agg({
             'TCP DL Retrans. Vol (Bytes)': 'mean',  # Average TCP retransmission
@@ -42,13 +45,14 @@ class CustomerMetricsAggregator:
             'Handset Type': lambda x: x.mode()[0], # Most common Handset Type
             'Avg Bearer TP DL (kbps)': 'mean'      # Average Throughput
         }).reset_index()
-        print("\nMetrics aggregated per customer.")
+        print(f"Aggregated data shape: {self.aggregated_data.shape}")  # Prints the shape of the aggregated data
+        print("Metrics aggregated.")
 
     def save_results(self):
         os.makedirs('results', exist_ok=True)
         output_file = 'results/aggregated_customer_metrics.csv'
         self.aggregated_data.to_csv(output_file, index=False)
-        print(f"\nAggregated data saved to '{output_file}'.")
+        print(f"Aggregated data saved to '{output_file}'.")
 
     def process(self):
         self.load_data()

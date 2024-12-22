@@ -10,6 +10,7 @@ class ComputeMetrics:
     def load_data(self):
         self.df = pd.read_csv(self.file_path)
         print(f"Data loaded from {self.file_path}")
+        print(f"Loaded data shape: {self.df.shape}")  # Prints the shape of the loaded data
 
     def compute_top_bottom_frequent(self, column_name):
         top_10 = self.df[column_name].nlargest(10).tolist()
@@ -32,6 +33,9 @@ class ComputeMetrics:
             if column in self.df.columns:
                 print(f"\nProcessing metrics for {label}...")
                 self.results[label] = self.compute_top_bottom_frequent(column)
+                print(f"Top 10 values for {label}: {self.results[label]['Top 10']}")
+                print(f"Bottom 10 values for {label}: {self.results[label]['Bottom 10']}")
+                print(f"Most frequent values for {label}: {self.results[label]['Most Frequent']}")
             else:
                 print(f"\nColumn '{column}' not found in the dataset.")
 

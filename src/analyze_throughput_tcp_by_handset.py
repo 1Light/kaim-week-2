@@ -12,11 +12,14 @@ class HandsetAnalysis:
     def load_data(self):
         self.df = pd.read_csv(self.file_path)
         print(f"Data loaded from {self.file_path}")
+        print(f"Loaded data shape: {self.df.shape}")  # Prints the shape of the loaded data
 
     def compute_distribution_throughput(self):
         if 'Handset Type' in self.df.columns and 'Avg Bearer TP DL (kbps)' in self.df.columns:
             throughput_distribution = self.df.groupby('Handset Type')['Avg Bearer TP DL (kbps)'].mean().sort_values(ascending=False)
             self.results['Throughput Distribution'] = throughput_distribution
+            print(f"\nTop 5 handset types with highest average throughput (kbps):")
+            print(throughput_distribution.head(5))  # Print the top 5 handset types by average throughput
 
             # Plotting the distribution
             plt.figure(figsize=(12, 6))
@@ -36,6 +39,8 @@ class HandsetAnalysis:
         if 'Handset Type' in self.df.columns and 'TCP DL Retrans. Vol (Bytes)' in self.df.columns:
             tcp_retransmission = self.df.groupby('Handset Type')['TCP DL Retrans. Vol (Bytes)'].mean().sort_values(ascending=False)
             self.results['TCP Retransmission'] = tcp_retransmission
+            print(f"\nTop 5 handset types with highest average TCP retransmission (Bytes):")
+            print(tcp_retransmission.head(5))  # Print the top 5 handset types by average TCP retransmission
 
             # Plotting the retransmission
             plt.figure(figsize=(12, 6))
@@ -62,7 +67,9 @@ class HandsetAnalysis:
         for metric, data in self.results.items():
             file_path = f'results/{metric.lower().replace(" ", "_")}.csv'
             data.to_csv(file_path, index=True, header=True)
-            print(f"{metric} saved to '{file_path}'.")
+            print(f"\n{metric} saved to '{file_path}'.")
+            print(f"First 5 rows of {metric} data:")
+            print(data.head(5))  # Print the first 5 rows of the saved data to give a preview
 
 if __name__ == "__main__":
     file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
