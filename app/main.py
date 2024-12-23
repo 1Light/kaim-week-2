@@ -20,6 +20,10 @@ page = st.sidebar.radio("Select Page", ["User Engagement Analysis", "Engagement,
 # Path to the data file
 file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
 
+# Print the absolute file path for debugging
+absolute_file_path = os.path.abspath(file_path)
+print("Absolute file path:", absolute_file_path)
+
 # --- User Engagement Analysis Page ---
 if page == "User Engagement Analysis":
     st.title("User Engagement and Experience Analysis")
