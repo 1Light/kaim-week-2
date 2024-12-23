@@ -1,8 +1,11 @@
 import streamlit as st
 import os
+import sys
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from utils import user_engagement_analysis, EngagementExperienceScoring
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set page title first (before any other Streamlit function)
 st.set_page_config(page_title="Analysis Dashboard")
@@ -15,7 +18,7 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["User Engagement Analysis", "Engagement, Experience & Satisfaction Analysis"])
 
 # Path to the data file
-file_path = 'cleaned_data/main_data_source/main_data_source.csv'
+file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
 
 # --- User Engagement Analysis Page ---
 if page == "User Engagement Analysis":
