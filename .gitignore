@@ -2,3 +2,4 @@ venv/
 cleaned_data/
 data/
 results/
+.env
