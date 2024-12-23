@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import mysql.connector
+import psycopg2
 from dotenv import load_dotenv
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -30,7 +30,7 @@ class EngagementExperienceScoring:
         ]
 
         # Retrieve the password from the environment variable
-        self.password = os.getenv("MYSQL_PASSWORD")  # Now using self.password
+        self.password = os.getenv("POSTGRES_PASSWORD")  # Using self.password for PostgreSQL
         print(f"Password fetched: {self.password}")
 
     def load_data(self):
@@ -132,112 +132,97 @@ class EngagementExperienceScoring:
         cluster_agg.to_csv('results/average_scores_per_cluster.csv')
         print("Average scores per cluster saved as 'average_scores_per_cluster.csv'.")
 
-    def export_to_mysql(self):
-        """Export the final table to a MySQL database."""
+    def export_to_postgresql(self):
+        """Export the final table to a PostgreSQL database."""
         try:
-            # Connect to MySQL
-            self.connection = mysql.connector.connect(
+            # Connect to PostgreSQL
+            self.connection = psycopg2.connect(
                 host=self.db_config['host'],
                 user=self.db_config['user'],
                 password=self.db_config['password'],
                 database=self.db_config['database']
             )
-            
+
             # Check if the connection is established
-            if self.connection.is_connected():
+            if self.connection:
                 self.cursor = self.connection.cursor()
 
                 # Create table if not exists
                 create_table_query = """
                 CREATE TABLE IF NOT EXISTS user_scores (
-                    `Bearer Id` VARCHAR(255), 
-                    `Avg Bearer TP DL (kbps)` FLOAT,
-                    `TCP DL Retrans. Vol (Bytes)` FLOAT,
-                    `Avg RTT Combined (ms)` FLOAT,
-                    `Cluster` INT,
-                    `Engagement Score` FLOAT,
-                    `Experience Score` FLOAT,
-                    `Satisfaction Score` FLOAT,
-                    `Engagement-Experience Cluster` INT
+                    "Bearer Id" VARCHAR(255), 
+                    "Avg Bearer TP DL (kbps)" FLOAT,
+                    "TCP DL Retrans. Vol (Bytes)" FLOAT,
+                    "Avg RTT Combined (ms)" FLOAT,
+                    "Cluster" INT,
+                    "Engagement Score" FLOAT,
+                    "Experience Score" FLOAT,
+                    "Satisfaction Score" FLOAT,
+                    "Engagement-Experience Cluster" INT
                 )
                 """
                 self.cursor.execute(create_table_query)
                 print("Table `user_scores` created or already exists.")
 
-                # Insert data into MySQL
+                # Insert data into PostgreSQL
                 insert_query = """
-                INSERT INTO user_scores (Bearer_Id, Engagement_Score, Experience_Score, Satisfaction_Score)
+                INSERT INTO user_scores ("Bearer Id", "Engagement Score", "Experience Score", "Satisfaction Score")
                 VALUES (%s, %s, %s, %s)
                 """
 
-                # Convert relevant columns to float32
-                self.df['Bearer Id'] = self.df['Bearer Id'].astype('float32')
-                self.df['Engagement Score'] = self.df['Engagement Score'].astype('float32')
-                self.df['Experience Score'] = self.df['Experience Score'].astype('float32')
-                self.df['Satisfaction Score'] = self.df['Satisfaction Score'].astype('float32')
+                # Convert relevant columns to native Python float (not np.float64)
+                self.df['Bearer Id'] = self.df['Bearer Id'].astype(str)  # Ensure 'Bearer Id' is a string, if it's not already
+                self.df['Engagement Score'] = self.df['Engagement Score'].astype(float)
+                self.df['Experience Score'] = self.df['Experience Score'].astype(float)
+                self.df['Satisfaction Score'] = self.df['Satisfaction Score'].astype(float)
 
-                # Convert other numeric columns (e.g., int64 and float64) to float32
-                self.df[self.df.select_dtypes(include=['float64', 'int64']).columns] = self.df.select_dtypes(include=['float64', 'int64']).astype('float32')
+                # Ensure all numeric columns are converted to Python's native float (just in case)
+                self.df[self.df.select_dtypes(include=['float64', 'int64']).columns] = \
+                    self.df.select_dtypes(include=['float64', 'int64']).astype(float)
 
-                print(self.df.dtypes)
+                print(self.df.dtypes)  # Check the data types after conversion
 
                 # Iterate through rows and explicitly convert to Python native float
                 for _, row in self.df.iterrows():
-                    # Explicitly convert to native Python float
-                    engagement_score = float(row['Engagement Score'])
-                    experience_score = float(row['Experience Score'])
-                    satisfaction_score = float(row['Satisfaction Score'])
-
-                    # Insert the data into MySQL
+                    # Insert the data into PostgreSQL
                     self.cursor.execute(insert_query, 
-                                        (row['Bearer Id'], 
-                                        engagement_score, 
-                                        experience_score, 
-                                        satisfaction_score))
+                                        (str(row['Bearer Id']),  # Make sure Bearer Id is a string
+                                        float(row['Engagement Score']), 
+                                        float(row['Experience Score']), 
+                                        float(row['Satisfaction Score'])))
 
+                # Commit changes and close the cursor and connection
                 self.connection.commit()
-                print("Data exported to MySQL database successfully.")
+                print("Data successfully inserted into PostgreSQL.")
 
-                # Verify by running a SELECT query
-                self.cursor.execute("SELECT * FROM user_scores LIMIT 10;")
-                result = self.cursor.fetchall()
-                print("\nSample data from the database:")
-                for row in result:
-                    print(row)
-            else:
-                print("Failed to connect to the database.")
-                
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
+        except Exception as e:
+            print(f"Error while exporting to PostgreSQL: {e}")
         finally:
-            # Ensure that cursor and connection are closed properly
-            if hasattr(self, 'cursor') and self.cursor:
+            if self.cursor:
                 self.cursor.close()
-            if hasattr(self, 'connection') and self.connection:
+            if self.connection:
                 self.connection.close()
 
-    def process(self):
+    def run_all(self):
         self.load_data()
         self.preprocess_data()
         self.perform_clustering(k=3)
         self.analyze_clusters()
         self.calculate_scores()
         self.calculate_satisfaction_score()
-        self.get_top_satisfied_customers()
+        self.get_top_satisfied_customers(top_n=10)
         self.build_regression_model()
         self.run_kmeans_on_scores(k=2)
         self.aggregate_scores_per_cluster()
-        self.export_to_mysql() 
+        self.export_to_postgresql()
 
 if __name__ == "__main__":
-
+    file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
     db_config = {
         'host': 'localhost',
-        'user': 'root',
-        'password': os.getenv('MYSQL_PASSWORD'),
-        'database': 'kaim-week-2'
+        'user': 'root', 
+        'password': os.getenv("POSTGRES_PASSWORD"),  
+        'database': 'kaim-week-2'  
     }
-
-    file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
-    scoring = EngagementExperienceScoring(file_path, db_config)  
-    scoring.process()
+    scoring_system = EngagementExperienceScoring(file_path, db_config)
+    scoring_system.run_all()
