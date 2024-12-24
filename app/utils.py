@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 import os
 import psycopg2
 from sklearn.cluster import KMeans
@@ -15,6 +16,14 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.data_processing.load_and_clean_data import prepare_data
+
+# Call the data preparation script at the top to ensure paths and data are created
+prepare_data()
 
 ###############################################################################################
 ################################## User Engagement Analysis ###################################
