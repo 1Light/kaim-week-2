@@ -70,7 +70,7 @@ You can check out the live version of the project [here](https://kaim-week-2.str
    ```  
 4. Start the dashboard:  
    ```bash
-   streamlit run src/main.py
+   streamlit run app/main.py
    ```  
 
 ## Insights and Recommendations  
