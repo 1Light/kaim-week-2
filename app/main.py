@@ -24,8 +24,9 @@ load_dotenv()
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["User Engagement Analysis", "Engagement, Experience & Satisfaction Analysis"])
 
-# Path to the data file
-file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
+# Absolute path to the data file
+base_dir = os.path.dirname(os.path.abspath(__file__))  # Get the absolute path of the current script
+file_path = os.path.join(base_dir, 'cleaned_data', 'main_data_source', 'main_data_source.csv')
 
 # --- User Engagement Analysis Page ---
 if page == "User Engagement Analysis":
