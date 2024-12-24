@@ -4,13 +4,12 @@ import sys
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
-
 # Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import custom modules
 from utils import user_engagement_analysis, EngagementExperienceScoring
-from src.data_processing.load_data import prepare_data
+from src.data_processing.load_and_clean_data import prepare_data
 
 # Call the data preparation script at the top to ensure paths and data are created
 prepare_data()
