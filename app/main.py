@@ -3,10 +3,17 @@ import os
 import sys
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
-from utils import user_engagement_analysis, EngagementExperienceScoring
-from data_preparation import main
 
+
+# Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import custom modules
+from utils import user_engagement_analysis, EngagementExperienceScoring
+from src.data_processing.load_data import prepare_data
+
+# Call the data preparation script at the top to ensure paths and data are created
+prepare_data()
 
 # Set page title first (before any other Streamlit function)
 st.set_page_config(page_title="Analysis Dashboard")
@@ -20,19 +27,6 @@ page = st.sidebar.radio("Select Page", ["User Engagement Analysis", "Engagement,
 
 # Path to the data file
 file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
-
-# Ensure the cleaned data is prepared
-if not os.path.exists(os.path.dirname(file_path)):  # Check if the directory exists
-    print("Directory does not exist. Creating it...")
-    os.makedirs(os.path.dirname(file_path))  # Create the directory
-
-if not os.path.exists(file_path):  # Check if the cleaned data exists
-    print("Cleaning data...")  # Print to console for debugging
-    main()  # Call the data preparation script to clean and prepare data
-
-# Print the absolute file path for debugging
-absolute_file_path = os.path.abspath(file_path)
-print("Absolute file path:", absolute_file_path)
 
 # --- User Engagement Analysis Page ---
 if page == "User Engagement Analysis":

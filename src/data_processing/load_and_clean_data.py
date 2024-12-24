@@ -99,6 +99,9 @@ def main():
     saver = DataSaver(cleaned_df, cleaned_data_path)
     saver.save_cleaned_data()
 
+# Assign `main` to `prepare_data` for easier imports
+prepare_data = main
+
 # Run the main function to execute the whole process
 if __name__ == "__main__":
     main()
