@@ -10,8 +10,12 @@ def download_from_gdrive(file_id, output_path):
     url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, output_path, quiet=False)
 
-def load_and_clean_data():
+# Define file_path as a global variable
+file_path = None
 
+def load_and_clean_data():
+    global file_path  # Declare file_path as global
+    
     file_ids = {
         "cleaned_data": "1MFUkAlxFDdXUqXDO1uBu9II9KCqiQiL_",  
     }
@@ -20,7 +24,7 @@ def load_and_clean_data():
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'temp_data'))
     os.makedirs(base_path, exist_ok=True)  
     
-    # Define file paths for each dataset
+    # Define file path for the dataset
     file_path = os.path.join(base_path, 'main_data_source.csv')
 
     # Download files only if they don't exist
@@ -38,13 +42,12 @@ load_dotenv()
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["User Engagement Analysis", "Engagement, Experience & Satisfaction Analysis"])
 
-# Absolute path to the data file
-base_dir = os.path.dirname(os.path.abspath(__file__))  # Get the absolute path of the current script
-file_path = os.path.join(base_dir, 'cleaned_data', 'main_data_source', 'main_data_source.csv')
-
 # --- User Engagement Analysis Page ---
 if page == "User Engagement Analysis":
     st.title("User Engagement and Experience Analysis")
+    
+    # Load data
+    load_and_clean_data()  # Ensure data is loaded before analysis
 
     # Run the user engagement analysis from utils
     top_sessions, top_duration, top_traffic = user_engagement_analysis(file_path)
@@ -100,6 +103,9 @@ if page == "User Engagement Analysis":
 # --- Engagement, Experience & Satisfaction Scoring Analysis Page ---
 if page == "Engagement, Experience & Satisfaction Analysis":
     st.title("Engagement and Experience Scoring Analysis")
+    
+    # Load data
+    load_and_clean_data()  # Ensure data is loaded before analysis
 
     # Initialize the EngagementExperienceScoring class
     db_config = {

@@ -291,7 +291,8 @@ class EngagementExperienceScoring:
         self.export_to_postgresql()
 
 if __name__ == "__main__":
-    file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
+    load_and_clean_data()
+    file_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'temp_data')), 'main_data_source.csv')
     db_config = {
         'host': 'localhost',
         'user': 'root', 
