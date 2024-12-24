@@ -20,8 +20,14 @@ The project is divided into the following sub-objectives:
    - Measure engagement through metrics like session frequency, duration, and traffic.  
    - Cluster users based on engagement scores using k-means clustering.  
    - Identify top applications and most engaged users.  
-3. **User Experience Analysis** *(Future Scope)*  
-4. **User Satisfaction Analysis** *(Future Scope)*  
+3. **User Experience Analysis**  
+   - Assess user experience through metrics like call quality, data speed, and service availability.  
+   - Perform sentiment analysis on customer feedback (e.g., from surveys or social media).  
+   - Segment users based on experience scores and identify areas for improvement.  
+4. **User Satisfaction Analysis**  
+   - Measure user satisfaction through survey data, customer support interactions, and app ratings.  
+   - Analyze key drivers of satisfaction and dissatisfaction.  
+   - Segment users based on satisfaction scores and identify patterns related to demographics or usage behavior. 
 
 ## Folder Structure  
 ```
@@ -45,6 +51,9 @@ kaim-week-2/
 - **Dashboard**  
    - A Streamlit-based dashboard for presenting insights interactively.  
 
+## Live Demo  
+You can check out the live version of the project [here](https://kaim-week-2.streamlit.app/).
+
 ## Setup Instructions  
 1. Clone the repository:  
    ```bash
@@ -61,12 +70,7 @@ kaim-week-2/
    ```  
 4. Start the dashboard:  
    ```bash
-   streamlit run src/dashboard.py
-   ```  
-5. Build Docker image (optional):  
-   ```bash
-   docker build -t kaim-week-2 .
-   docker run -p 8501:8501 kaim-week-2
+   streamlit run src/main.py
    ```  
 
 ## Insights and Recommendations  
