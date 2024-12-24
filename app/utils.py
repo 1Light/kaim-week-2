@@ -17,12 +17,15 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Add the parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add the absolute path to sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)  # Parent directory
+sys.path.append(parent_dir)
 
+# Import the data preparation function from the parent directory
 from src.data_processing.load_and_clean_data import prepare_data
 
-# Call the data preparation script at the top to ensure paths and data are created
+# Call the data preparation script to ensure paths and data are set up
 prepare_data()
 
 ###############################################################################################
@@ -230,58 +233,51 @@ class EngagementExperienceScoring:
                 """
 
                 # Convert relevant columns to native Python float (not np.float64)
-                self.df['Bearer Id'] = self.df['Bearer Id'].astype(str)  # Ensure 'Bearer Id' is a string, if it's not already
+                self.df['Satisfaction Score'] = self.df['Satisfaction Score'].astype(float)
                 self.df['Engagement Score'] = self.df['Engagement Score'].astype(float)
                 self.df['Experience Score'] = self.df['Experience Score'].astype(float)
-                self.df['Satisfaction Score'] = self.df['Satisfaction Score'].astype(float)
 
-                # Ensure all numeric columns are converted to Python's native float (just in case)
-                self.df[self.df.select_dtypes(include=['float64', 'int64']).columns] = \
-                    self.df.select_dtypes(include=['float64', 'int64']).astype(float)
-
-                print(self.df.dtypes)  # Check the data types after conversion
-
-                # Iterate through rows and explicitly convert to Python native float
-                for _, row in self.df.iterrows():
-                    # Insert the data into PostgreSQL
-                    self.cursor.execute(insert_query, 
-                                        (str(row['Bearer Id']),  # Make sure Bearer Id is a string
-                                        float(row['Engagement Score']), 
-                                        float(row['Experience Score']), 
-                                        float(row['Satisfaction Score'])))
-
-                # Commit changes and close the cursor and connection
+                for index, row in self.df.iterrows():
+                    self.cursor.execute(insert_query, (row['Bearer Id'], row['Engagement Score'], row['Experience Score'], row['Satisfaction Score']))
                 self.connection.commit()
-                print("Data successfully inserted into PostgreSQL.")
+                print("Data successfully inserted into the PostgreSQL database.")
 
         except Exception as e:
-            print(f"Error while exporting to PostgreSQL: {e}")
-        finally:
-            if self.cursor:
-                self.cursor.close()
-            if self.connection:
-                self.connection.close()
+            print(f"Error exporting data to PostgreSQL: {e}")
 
-    def run_all(self):
-        self.load_data()
-        self.preprocess_data()
-        self.perform_clustering(k=3)
-        self.analyze_clusters()
-        self.calculate_scores()
-        self.calculate_satisfaction_score()
-        self.get_top_satisfied_customers(top_n=10)
-        self.build_regression_model()
-        self.run_kmeans_on_scores(k=2)
-        self.aggregate_scores_per_cluster()
-        self.export_to_postgresql()
+        finally:
+            if self.connection:
+                self.cursor.close()
+                self.connection.close()
+                print("PostgreSQL connection closed.")
 
 if __name__ == "__main__":
-    file_path = os.path.join('cleaned_data', 'main_data_source', 'main_data_source.csv')
     db_config = {
-        'host': 'localhost',
-        'user': 'root', 
-        'password': os.getenv("POSTGRES_PASSWORD"),  
-        'database': 'kaim-week-2'  
+        'host': 'localhost',  # Use your PostgreSQL host
+        'user': 'user',       # Use your PostgreSQL username
+        'password': 'password',  # Replace with your PostgreSQL password
+        'database': 'user_engagement'
     }
-    scoring_system = EngagementExperienceScoring(file_path, db_config)
-    scoring_system.run_all()
+
+    engagement_analysis = EngagementExperienceScoring(
+        file_path='path_to_your_data.csv',
+        db_config=db_config
+    )
+    
+    engagement_analysis.load_data()
+    engagement_analysis.preprocess_data()
+    engagement_analysis.perform_clustering(k=3)
+    engagement_analysis.analyze_clusters()
+    engagement_analysis.calculate_scores()
+    engagement_analysis.calculate_satisfaction_score()
+    engagement_analysis.get_top_satisfied_customers()
+    engagement_analysis.build_regression_model()
+    engagement_analysis.run_kmeans_on_scores(k=2)
+    engagement_analysis.aggregate_scores_per_cluster()
+    engagement_analysis.export_to_postgresql()
+
+    # Run user engagement analysis
+    top_sessions, top_duration, top_traffic = user_engagement_analysis('path_to_your_data.csv')
+    print(f"Top Sessions:\n{top_sessions}\n")
+    print(f"Top Duration:\n{top_duration}\n")
+    print(f"Top Traffic:\n{top_traffic}\n")
