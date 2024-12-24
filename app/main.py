@@ -1,18 +1,32 @@
 import streamlit as st
 import os
-import sys
+import gdown
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+from utils import user_engagement_analysis, EngagementExperienceScoring
 
 # Add the parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+def download_from_gdrive(file_id, output_path):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, output_path, quiet=False)
 
-# Import custom modules
-from utils import user_engagement_analysis, EngagementExperienceScoring
-from src.data_processing.load_and_clean_data import prepare_data
+def load_and_clean_data():
 
-# Call the data preparation script at the top to ensure paths and data are created
-prepare_data()
+    file_ids = {
+        "cleaned_data": "1MFUkAlxFDdXUqXDO1uBu9II9KCqiQiL_",  
+    }
+
+    # Define local paths to save the data temporarily
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'temp_data'))
+    os.makedirs(base_path, exist_ok=True)  
+    
+    # Define file paths for each dataset
+    file_path = os.path.join(base_path, 'main_data_source.csv')
+
+    # Download files only if they don't exist
+    if not os.path.exists(file_path):
+        print("Downloading data...")
+        download_from_gdrive(file_ids["cleaned_data"], file_path)
 
 # Set page title first (before any other Streamlit function)
 st.set_page_config(page_title="Analysis Dashboard")
