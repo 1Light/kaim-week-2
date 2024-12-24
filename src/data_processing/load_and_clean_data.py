@@ -1,6 +1,7 @@
 import gdown
 import pandas as pd
 import os
+import shutil
 
 class DataDownloader:
     def __init__(self, file_ids, output_dir):
@@ -75,10 +76,17 @@ class DataSaver:
         self.df = df
         self.output_dir = output_dir
 
+    def clear_directory(self):
+        """Clear the output directory if it exists."""
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
+            print(f"Existing directory {self.output_dir} cleared.")
+
     def save_cleaned_data(self):
         """Save the cleaned data to a new CSV file."""
+        self.clear_directory()  # Clear the directory first
+        os.makedirs(self.output_dir, exist_ok=True)  # Create directory if not exists
         cleaned_path = os.path.join(self.output_dir, 'main_data_source.csv')
-        os.makedirs(self.output_dir, exist_ok=True)
         self.df.to_csv(cleaned_path, index=False)
         print(f"Cleaned data saved to {cleaned_path}")
 
